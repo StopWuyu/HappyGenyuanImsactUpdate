@@ -56,7 +56,7 @@ namespace HappyGenyuanImsactUpdate
                                 CmdLine = $"-f \"{hdiffName}\" \"{hdiffName}.hdiff\" \"{hdiffName}\"",
                                 AutoTerminateReason = $"hdiff patch for \"{hdiffName}\" failed."
                             });
-                            hdiffs.Add(hdiffPathstd);
+                            hdiffs.Add($"{hdiffPathstd}.hdiff");
                         }
                     }
                 }
