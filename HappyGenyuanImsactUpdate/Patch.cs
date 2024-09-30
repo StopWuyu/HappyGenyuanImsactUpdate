@@ -27,6 +27,7 @@ namespace HappyGenyuanImsactUpdate
             var invokes = new List<OuterInvokeInfo>();
 
             var hdifftxtPath = $"{datadir}\\hdifffiles.txt";
+            var hdiffjsonPath = $"{datadir}\\hdiffmap.json";
             if (File.Exists(hdifftxtPath))
             {
                 using (StreamReader hdiffreader = new(hdifftxtPath))
@@ -61,6 +62,40 @@ namespace HappyGenyuanImsactUpdate
                 }
 
                 File.Delete(hdifftxtPath);
+            } else if (File.Exists(hdiffjsonPath))
+            {
+                using (StreamReader hdiffreader = new(hdiffjsonPath))
+                {
+                    //{"source_file_name":"","source_file_md5":"","source_file_size":0,"target_file_name":"","target_file_md5":"","target_file_size":0,"patch_file_name":"","patch_file_md5":"","patch_file_size":0}
+                    HdiffMap? json = JsonSerializer.Deserialize<HdiffMap>(hdiffreader.ReadToEnd());
+                    if (json == null) return;
+
+                    foreach (var file in json.diff_map)
+                    {
+                        string sourceName = datadir.FullName + '/' + file.source_file_name;
+                        //command:  -f (original file) (patch file)   (output file)
+                        //  hpatchz -f name.pck        name.pck.hdiff name.pck
+                        string sourcePathstd = new FileInfo(sourceName).FullName;
+                        // If package is created by an individual, he may include
+                        // unnecessary files like cache and live updates,
+                        // So it's essential to skip some files that doesn't exist.
+                        if (!File.Exists(sourcePathstd)) continue;
+
+                        string hdiffName = datadir.FullName + '/' + file.patch_file_name;
+                        string hdiffPathstd = new FileInfo(sourceName).FullName;
+
+                        string targetName = datadir.FullName + '/' + file.target_file_name;
+
+                        invokes.Add(new OuterInvokeInfo
+                        {
+                            ProcessPath = PathHdiff,
+                            CmdLine = $"-f \"{sourceName}\" \"{hdiffName}\" \"{targetName}\"",
+                            AutoTerminateReason = $"hdiff patch for \"{hdiffName}\" failed."
+                        });
+                        hdiffs.Add(sourcePathstd);
+                        hdiffs.Add(hdiffPathstd);
+                    }
+                }
             }
 
             await OuterInvoke.RunMultiple(invokes, 3851, 2);
@@ -68,7 +103,7 @@ namespace HappyGenyuanImsactUpdate
             // Delete .hdiff afterwards
             foreach (var hdiffFile in hdiffs)
             {
-                File.Delete($"{hdiffFile}.hdiff");
+                File.Delete($"{hdiffFile}");
             }
         }
         #endregion
