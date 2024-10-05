@@ -41,7 +41,7 @@ name: Normal dotnet publish
 
 on:
   push:
-    branches: [ "development-(have-not-been-tested)" ]
+    branches: [ "main", "development-(have-not-been-tested)" ]
   pull_request:
     branches: [ "main", "development-(have-not-been-tested)" ]
 
