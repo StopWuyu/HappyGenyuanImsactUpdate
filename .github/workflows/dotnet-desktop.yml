@@ -70,7 +70,7 @@ jobs:
 
     # Upload artifact
     - name: Upload release
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4.3.1
       with:
         name: Release-windows7-x64
         path: Release-windows7-x64
